@@ -4,7 +4,7 @@ This package is being developed
 
 Only a little bit of functionality from now
 
-[![Build Status](https://travis-ci.org/benlightning/fabux.svg)](https://travis-ci.org/benlightning/fabux) [![Go Walker](http://gowalker.org/api/v1/badge)](http://gowalker.org/github.com/benlightning/fabux)
+[![Build Status](https://travis-ci.org/benlightning/fabux.svg)](https://travis-ci.org/benlightning/fabux/fabcore) [![Go Walker](http://gowalker.org/api/v1/badge)](http://gowalker.org/github.com/benlightning/fabux)
 
 This is an open source project about ssh connection tool for the Go programming language.
 
@@ -15,6 +15,12 @@ Development based on **go 1.5.1**
 Simple as it takes to type the following command:
 
     go get github.com/benlightning/fabux
+
+Dependency:
+	
+	[pscp](https://the.earth.li/~sgtatham/putty/latest/x86/pscp.exe) windows
+	scp
+	github.com/Unknwon/goconfig
 
 ## Usage
 

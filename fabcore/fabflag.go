@@ -19,8 +19,8 @@ import "flag"
 func Flag() (*string, *bool, *string, *bool) {
 	var (
 		ConfigFile = flag.String("c", "server.ini", "General configuration file")
-		canGlobal  = flag.Bool("g", false, "run global commands in the configuration file")
-		HostLevel  = flag.String("h", "all", "this parameter represents the server host in the configuration file,usage: -h=1,2,...")
+		canGlobal  = flag.Bool("g", true, "run global commands in the configuration file")
+		HostLevel  = flag.String("h", "", "this parameter represents the server host in the configuration file,usage: -h=1,2,...")
 		isLog      = flag.Bool("l", false, "This parameter defaults to indicate whether the print output execution results, usage: -l=true or -l")
 	)
 	flag.Parse()

@@ -22,20 +22,36 @@ import (
 	"github.com/benlightning/fabux/fabcore"
 )
 
+var (
+	timeout int         = 0
+	TimeOut int         = 10
+	Ok      chan string = make(chan string)
+	Err     chan string = make(chan string)
+	Res     chan string = make(chan string)
+	Sta     chan string = make(chan string)
+)
+
 func main() {
 	c, g, h, l := fabcore.Flag()
 	config := fabcore.GetConfig(*c)
 	host := fabcore.GetHost(config)
-
+	local := fabcore.GetLocal(config)
+	var global map[string]string
 	//can use global cmd
 	if *g {
-		log.Println(*g)
+		global = fabcore.GetGlobal(config)
+		fabcore.Client("127.0.0.1:2222", "root", "vagrant", global)
+		//log.Println(global)
 	}
+
 	//can print log
 	if *l {
+		log.Println(len(global))
+		log.Println(local)
 		log.Println(*l)
+		log.Println(*h, host)
 	}
-	log.Println(*h, host)
+
 	//fabcore.Files2Zip("D:/1/1.php", "back")
 }
 

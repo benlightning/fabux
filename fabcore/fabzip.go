@@ -22,14 +22,18 @@ import (
 	"path/filepath"
 )
 
-func Files2Zip(dir, name string) {
+// Files2Zip compress files to an archive,such as name.zip
+func Files2Zip(dir, name string) error {
 	zipName := fmt.Sprintf("%s.zip", name)
 	currentDir, _ := os.Getwd()
-	file, _ := os.Create(zipName)
-	defer file.Close()
-	err := os.Chdir(filepath.Dir(dir))
+	file, err := os.Create(zipName)
 	if err != nil {
-		os.Exit(1)
+		return err
+	}
+	defer file.Close()
+	err = os.Chdir(filepath.Dir(dir))
+	if err != nil {
+		return err
 	}
 	dir = filepath.Base(dir)
 	zipbuf := zip.NewWriter(file)
@@ -46,6 +50,9 @@ func Files2Zip(dir, name string) {
 
 		src, _ := os.Open(dir)
 		defer src.Close()
+		// h, err := zip.FileInfoHeader(info) // 转换为zip格式的文件信息
+		// h.Name = ""
+		// h.Method= 8
 		h := &zip.FileHeader{Name: dir, Method: zip.Deflate, Flags: 0x800}
 		filename, _ := zipbuf.CreateHeader(h)
 		io.Copy(filename, src)
@@ -54,6 +61,7 @@ func Files2Zip(dir, name string) {
 	}
 	filepath.Walk(dir, walk)
 	os.Chdir(currentDir)
+	return nil
 }
 
 func error2curDir(currentDir, zipName string, file *os.File) {

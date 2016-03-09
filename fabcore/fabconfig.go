@@ -20,6 +20,7 @@ import (
 	"github.com/Unknwon/goconfig"
 )
 
+// GetConfig parse the configuration file and return
 func GetConfig(configfile string) *goconfig.ConfigFile {
 	c, err := goconfig.LoadConfigFile(configfile)
 	if err == nil {
