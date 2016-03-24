@@ -11,7 +11,6 @@ This is an open source project about ssh connection tool for the Go programming 
 Development based on **go 1.5.1**
 
 ## Installation
-
 Simple as it takes to type the following command:
 
     go get github.com/benlightning/fabux

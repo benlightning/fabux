@@ -18,10 +18,13 @@ package main
 
 import (
 	"log"
+	"os"
+	"runtime"
 
 	"github.com/benlightning/fabux/fabcore"
 )
 
+var CurrentDir, _ = os.Getwd() // 当前操作目录
 var (
 	timeout int         = 0
 	TimeOut int         = 10
@@ -32,6 +35,9 @@ var (
 )
 
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	// 配置文件地址，公众命令global，服务器选择1,2,..，是否log
 	c, g, h, l := fabcore.Flag()
 	config := fabcore.GetConfig(*c)
 	host := fabcore.GetHost(config)
@@ -40,8 +46,11 @@ func main() {
 	//can use global cmd
 	if *g {
 		global = fabcore.GetGlobal(config)
-		fabcore.Client("127.0.0.1:2222", "root", "vagrant", global)
+		//fabcore.Client("127.0.0.1:2222", "root", "vagrant", global)
 		//log.Println(global)
+	}
+	if len(local) > 0 && len(host) > 0 {
+		fabcore.Scpsend(h, local, host, Ok, Err, Sta)
 	}
 
 	//can print log
@@ -51,10 +60,4 @@ func main() {
 		log.Println(*l)
 		log.Println(*h, host)
 	}
-
-	//fabcore.Files2Zip("D:/1/1.php", "back")
-}
-
-func deploy() {
-
 }

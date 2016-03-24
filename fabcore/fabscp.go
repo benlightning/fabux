@@ -1,3 +1,5 @@
+// 两种方式，一种是读取zip文件到缓冲(连接管道StdinPipe())，然后通过在服务器端执行scp -qrt /dir/存储
+// 第二种是本地使用scp或pscp(win)命令进行文件传输
 package fabcore
 
 import (
@@ -7,56 +9,54 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/pkg/sftp"
-
 	"golang.org/x/crypto/ssh"
 )
 
-func Scpsend(hlevel, Path *string, config map[string][]string, Ok, Err, Sta chan string) {
-	FlagList := strings.Split(*hlevel, ",")
-	Name := filepath.Base(*Path)
-	SendFilePath := *Path
+func Scpsend(hostlevel *string, local map[string]string, host map[string][]string, Ok, Err, Sta chan string) {
 	OldPath, _ := os.Getwd()
-	if File, e := os.Stat(SendFilePath); e == nil {
-		if File.IsDir() {
-			//Zip_File.AddFilesToZip(SendFilePath, Name)
-			SendFilePath = fmt.Sprintf("%s\\%s.zip", OldPath, Name)
-			Name = fmt.Sprintf("%s.zip", Name)
-		}
-	} else {
-		fmt.Println(SendFilePath, ":not exists!")
-		os.Exit(2)
-	}
-	fmt.Println("send the file:", Name)
-	if *hlevel == "" {
-		for i, _ := range config {
-			if i != "0" {
-				go connect(config[i][0], config[i][1], config[i][2], SendFilePath, Name, Ok, Err, Sta)
+	//var file os.FileInfo
+	var e error
+	var SendFilePath string
+	var SendName string
+	for name, dir := range local {
+		if _, e = os.Stat(dir); e == nil {
+			Files2Zip(dir, name)
+			SendFilePath = fmt.Sprintf("%s%s%s.zip", OldPath, string(filepath.Separator), name)
+			SendName = fmt.Sprintf("%s.zip", name)
+			if *hostlevel == "" {
+				for i, _ := range host {
+					if i != "0" {
+						go connect(host[i][0], host[i][1], host[i][2], host[i][3], SendFilePath, SendName, Ok, Err, Sta)
+					}
+				}
+			} else {
+				FlagList := strings.Split(*hostlevel, ",")
+				for _, i := range FlagList {
+					go connect(host[i][0], host[i][1], host[i][2], host[i][3], SendFilePath, SendName, Ok, Err, Sta)
+				}
 			}
-		}
-	} else {
-		for _, i := range FlagList {
-			go connect(config[i][0], config[i][1], config[i][2], SendFilePath, Name, Ok, Err, Sta)
+		} else {
+			fmt.Println(dir, ":not exists!")
 		}
 	}
 }
 
-func connect(ip, user, password, FilePath, Name string, Ok, Err, Sta chan string) {
+func connect(ip_port, user, password, FilePath, Name, RemoteDir string, Ok, Err, Sta chan string) {
 	Auth := []ssh.AuthMethod{ssh.Password(password)}
 	conf := ssh.ClientConfig{Auth: Auth, User: user}
-	Client, err := ssh.Dial("tcp", ip, &conf)
+	Client, err := ssh.Dial("tcp", ip_port, &conf)
 	if err == nil {
-		Ok <- fmt.Sprint(ip, "connect status:success")
+		Ok <- fmt.Sprint(ip_port, "connect status:success")
 	} else {
-		Err <- fmt.Sprint(ip, "connect error:", err)
+		Err <- fmt.Sprint(ip_port, "connect error:", err)
 	}
 	defer Client.Close()
 
 	conn, err1 := Client.NewSession()
 	if err1 == nil {
-		Ok <- fmt.Sprint(ip, "session status:Ok")
+		Ok <- fmt.Sprint(ip_port, "session status:Ok")
 	} else {
-		Err <- fmt.Sprint(ip, "session error:", err1)
+		Err <- fmt.Sprint(ip_port, "session error:", err1)
 	}
 	defer conn.Close()
 	go func() {
@@ -79,11 +79,11 @@ func connect(ip, user, password, FilePath, Name string, Ok, Err, Sta chan string
 			}
 		}
 	}()
-	err3 := conn.Run("scp -qrt /mnt/") //upload to /mnt/ directory
+	err3 := conn.Run("scp -qrt " + RemoteDir) //upload to remote directory
 	if err3.Error() == "Process exited with: 1. Reason was:  ()" {
-		Ok <- fmt.Sprint(ip, "execute status:Ok")
+		Ok <- fmt.Sprint(ip_port, "execute status:Ok")
 		Sta <- "Ok"
 	} else {
-		Err <- fmt.Sprint(ip, "execute error:", err3)
+		Err <- fmt.Sprint(ip_port, "execute error:", err3)
 	}
 }
